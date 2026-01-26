@@ -30,14 +30,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller PyQt5 colorama pyqtgraph
 
-      - name: Create build directories
-        run: |
-          mkdir build
-          mkdir dist
-
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --noconsole frontend.py --name "Mental-Health-Tracker"
+          pyinstaller --log-level=DEBUG --onefile --noconsole frontend.py --name "Mental-Health-Tracker"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
