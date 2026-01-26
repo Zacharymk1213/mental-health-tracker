@@ -32,7 +32,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --noconsole frontend.py --name "Mental Health Tracker"
+          pyinstaller --onefile --noconsole frontend.py --name "Mental-Health-Tracker"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
