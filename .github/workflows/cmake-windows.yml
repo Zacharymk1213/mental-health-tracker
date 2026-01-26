@@ -49,5 +49,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: connections-windows-dist
+          name: mental-health-tracker-windows-dist
           path: dist/
