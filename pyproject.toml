@@ -1,0 +1,16 @@
+[tool.briefcase]
+project_name = "BurnsDepressionChecklist"
+bundle = "org.burnschecklist"
+version = "1.0"
+url = "http://example.com"
+license = "MIT"
+author = "Zachary Kleiman"
+author_email = "kleimanpolitics@gmail.com"
+
+[tool.briefcase.app.burnschecklist]
+formal_name = "Burns Depression Checklist"
+description = "A PyQt app for the Burns Depression Checklist"
+sources = ["burnschecklist"]
+requires = ["PyQt5", "pyqtgraph", "numpy"]
+
+
