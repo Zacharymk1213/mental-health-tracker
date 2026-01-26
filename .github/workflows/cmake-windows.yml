@@ -32,10 +32,10 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --log-level=DEBUG --onefile --noconsole frontend.py --name "Mental-Health-Tracker"
+          pyinstaller --log-level=DEBUG --onefile --noconsole frontend.py --name "Mental-Health-Tracker" --workpath D:/a/w --distpath D:/a/d
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: mental-health-tracker-windows-dist
-          path: dist/
+          path: D:/a/d
