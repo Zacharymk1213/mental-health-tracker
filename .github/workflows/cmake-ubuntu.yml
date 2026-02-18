@@ -1,4 +1,4 @@
-name: CMake pipeline for ubuntu build
+name: Ubuntu build + .deb package
 
 on:
   push:
@@ -7,9 +7,11 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-
 env:
   BUILD_TYPE: Release
+  APP_ID: mental-health-tracker
+  APP_TITLE: "Mental Health Tracker"
+  VERSION: "0.1.0"   # optionally override with tags later
 
 jobs:
   build:
@@ -26,7 +28,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             libxcb1 \
             libxcb-xinerama0 \
             libxcb-cursor0 \
@@ -36,18 +39,72 @@ jobs:
             libxcb-shape0 \
             libxcb-randr0 \
             libxcb-icccm4 \
-            libxcb-keysyms1
-
+            libxcb-keysyms1 \
+            fakeroot
 
           python -m pip install --upgrade pip
           pip install pyinstaller PyQt5 colorama pyqtgraph
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --noconsole frontend.py --name "Mental Health Tracker"
+          pyinstaller --onefile --noconsole frontend.py --name "${APP_ID}"
 
-      - name: Upload artifact
+      - name: Build .deb package
+        run: |
+          set -euxo pipefail
+
+          ARCH="$(dpkg --print-architecture)"
+          PKGROOT="pkgroot"
+
+          rm -rf "${PKGROOT}"
+          mkdir -p \
+            "${PKGROOT}/DEBIAN" \
+            "${PKGROOT}/usr/bin" \
+            "${PKGROOT}/usr/share/applications" \
+            "${PKGROOT}/usr/share/icons/hicolor/256x256/apps"
+
+          # Install your app binary into /usr/bin
+          install -m 0755 "dist/${APP_ID}" "${PKGROOT}/usr/bin/${APP_ID}"
+
+          # Control file (edit Maintainer/Description as you like)
+          cat > "${PKGROOT}/DEBIAN/control" <<EOF
+          Package: ${APP_ID}
+          Version: ${VERSION}
+          Section: utils
+          Priority: optional
+          Architecture: ${ARCH}
+          Maintainer: Your Name <you@example.com>
+          Depends: libxcb1, libxcb-xinerama0, libxcb-cursor0, libxkbcommon-x11-0, libx11-xcb1, libxcb-render0, libxcb-shape0, libxcb-randr0, libxcb-icccm4, libxcb-keysyms1
+          Description: ${APP_TITLE}
+           Desktop app packaged with PyInstaller.
+          EOF
+
+          # Desktop entry (optional but recommended)
+          cat > "${PKGROOT}/usr/share/applications/${APP_ID}.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=${APP_TITLE}
+          Exec=/usr/bin/${APP_ID}
+          Icon=${APP_ID}
+          Terminal=false
+          Categories=Utility;
+          EOF
+
+          # Optional icon (put your icon at e.g. assets/icon.png)
+          if [ -f "assets/icon.png" ]; then
+            install -m 0644 "assets/icon.png" "${PKGROOT}/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
+          fi
+
+          # Build the .deb
+          fakeroot dpkg-deb --build "${PKGROOT}" "${APP_ID}_${VERSION}_${ARCH}.deb"
+
+          # Quick sanity check
+          dpkg-deb -I "${APP_ID}_${VERSION}_${ARCH}.deb"
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mental-health-tracker-ubuntu-dist
-          path: dist/
+          name: mental-health-tracker-ubuntu
+          path: |
+            dist/
+            *.deb
